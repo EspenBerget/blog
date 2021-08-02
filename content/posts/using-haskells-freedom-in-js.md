@@ -463,3 +463,4 @@ I recommend trying something similar yourself.
 [Wikibooks chapter on fix](https://en.wikibooks.org/wiki/Haskell/Fix_and_recursion)  
 [Stackoverflow thread on free](https://stackoverflow.com/questions/13352205/what-are-free-monads)  
 [Wikipedia on fixed points](https://en.wikipedia.org/wiki/Fixed_point_%28mathematics%29)
+[Code used in this post](https://github.com/EspenBerget/code-free)
