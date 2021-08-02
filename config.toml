@@ -1,14 +1,17 @@
 baseURL = "https://EspenBerget.github.io/"
 languageCode = "en-us"
-title = "Espen Berget's Blog"
+title = "Espen Berget's Coding Blog"
 
 
 
-# Theme
-theme = "paperback"
+# theme 
+theme = "m10c"
 [params]
-AuthorName = "Espen Berget"
-HomepagePosts = 5
-GithubUsername = "EspenBerget"
+avatar = "images/me.png"
+author = "Espen Berget"
+description = "Computer programmer, interested in functional programming, web development, and the nix eco-system."
 
-
+[[params.social]]
+  icon = "github"
+  name = "My Github"
+  url = "https://github.com/EspenBerget"
