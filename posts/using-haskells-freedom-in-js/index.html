@@ -1,0 +1,426 @@
+<!doctype html><html lang=en-us>
+<head>
+<title>Using Haskell's Freedom in JavaScript // Espen Berget's Coding Blog</title>
+<link rel="shortcut icon" href=/favicon.ico>
+<meta charset=utf-8>
+<meta name=generator content="Hugo 0.86.1">
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=author content="Espen Berget">
+<meta name=description content>
+<link rel=stylesheet href=https://EspenBerget.github.io/css/main.min.4a7ec8660f9a44b08c4da97c5f2e31b1192df1d4d0322e65c0dbbc6ecb1b863f.css>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Using Haskell's Freedom in JavaScript">
+<meta name=twitter:description content="One of the topics mention when asking &ldquo;why learn haskell?&rdquo; is the claim that it can make you a better programmer in other languages as well. This is not an outrageous claim by any means as learning Java for instance will teach you OO and therefore you&rsquo;ll know how to use OO in JavaScript.
+That said. You do not need to learn Haskell to understand what map does in JS any more than you need C to know what a for loop does in JS.">
+<meta property="og:title" content="Using Haskell's Freedom in JavaScript">
+<meta property="og:description" content="One of the topics mention when asking &ldquo;why learn haskell?&rdquo; is the claim that it can make you a better programmer in other languages as well. This is not an outrageous claim by any means as learning Java for instance will teach you OO and therefore you&rsquo;ll know how to use OO in JavaScript.
+That said. You do not need to learn Haskell to understand what map does in JS any more than you need C to know what a for loop does in JS.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://EspenBerget.github.io/posts/using-haskells-freedom-in-js/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2021-08-02T20:31:58+02:00">
+<meta property="article:modified_time" content="2021-08-02T20:31:58+02:00">
+</head>
+<body>
+<header class=app-header>
+<a href=https://EspenBerget.github.io/><img class=app-header-avatar src=/images/me.png alt="Espen Berget"></a>
+<h1>Espen Berget's Coding Blog</h1>
+<p>Computer programmer, interested in functional programming, web development, and the nix eco-system.</p>
+<div class=app-header-social>
+<a href=https://github.com/EspenBerget target=_blank rel="noreferrer noopener"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-github"><title>My Github</title><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37.0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44.0 0020 4.77 5.07 5.07.0 0019.91 1S18.73.65 16 2.48a13.38 13.38.0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07.0 005 4.77 5.44 5.44.0 003.5 8.55c0 5.42 3.3 6.61 6.44 7A3.37 3.37.0 009 18.13V22"/></svg>
+</a>
+</div>
+</header>
+<main class=app-container>
+<article class=post>
+<header class=post-header>
+<h1 class=post-title>Using Haskell's Freedom in JavaScript</h1>
+<div class=post-meta>
+<div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar"><title>calendar</title><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+Aug 2, 2021
+</div>
+<div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock"><title>clock</title><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+15 min read
+</div>
+</div>
+</header>
+<div class=post-content>
+<p>One of the topics mention when asking &ldquo;why learn haskell?&rdquo; is the claim that it can make you a better
+programmer in other languages as well. This is not an outrageous claim by any means as learning Java
+for instance will teach you OO and therefore you&rsquo;ll know how to use OO in JavaScript.</p>
+<p>That said. You do not need to learn Haskell to understand what <code>map</code> does in JS any more than you need C to know what
+a for loop does in JS. And while JS does facilitate OO, making the claim that Java could enrich your JS experience prominent.
+JS does not have any monads or kinds, not even types really. So the claim really boils down to
+&ldquo;does the techniques used in Haskell translate to JS programming?&rdquo;. With this post I wanted to answer that and
+also see if I could learn a bit more of how the simple, but esoteric concepts of fix points and free monads work.
+Programming those two thing in JS will be a test for whether I understand the Haskell implementation or not.</p>
+<h2 id=straight-forward-implementations>Straight Forward Implementations</h2>
+<p>Lets say you need a simple evaluator for a simple algebra, with only plus, multiply and a concept of numbers. I will show a simple
+solution to this in both Haskell and JavaScript. Then we will see how we can abstract and compartmentalize this process using
+both the fix data structure and the free monad.</p>
+<h3 id=haskell>Haskell</h3>
+<p>We start by creating a datatype to represent the expressions. This is the abstract syntax tree for our evaluator so will call it
+AST for short.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-haskell data-lang=haskell><span style=color:#66d9ef>data</span> <span style=color:#66d9ef>AST</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>Value</span> <span style=color:#66d9ef>Int</span>
+         <span style=color:#f92672>|</span> <span style=color:#66d9ef>Add</span> <span style=color:#66d9ef>AST</span> <span style=color:#66d9ef>AST</span>
+         <span style=color:#f92672>|</span> <span style=color:#66d9ef>Mul</span> <span style=color:#66d9ef>AST</span> <span style=color:#66d9ef>AST</span>
+         <span style=color:#66d9ef>deriving</span> <span style=color:#66d9ef>Show</span>
+</code></pre></div><p>This says that the data type <code>AST</code> is either a <code>Value</code>, <code>Add</code> or <code>Mul</code>.
+The constructor <code>Value</code> holds an integer, this is the numbers in our algebra. The two other constructors, <code>Add</code>
+and <code>Mul</code> both takes to arguments of <code>AST</code> so it&rsquo;s a recursive data structure.</p>
+<p>An evaluator function in Haskell might look like this:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-haskell data-lang=haskell><span style=color:#a6e22e>eval</span> <span style=color:#f92672>::</span> <span style=color:#66d9ef>AST</span> <span style=color:#f92672>-&gt;</span> <span style=color:#66d9ef>Int</span>                      <span style=color:#75715e>-- 1.</span>
+<span style=color:#a6e22e>eval</span> (<span style=color:#66d9ef>Value</span> n)   <span style=color:#f92672>=</span> n                    <span style=color:#75715e>-- 2.</span>
+<span style=color:#a6e22e>eval</span> (<span style=color:#66d9ef>Add</span> e1 e2) <span style=color:#f92672>=</span> eval e1 <span style=color:#f92672>+</span> eval e2    <span style=color:#75715e>-- 3.</span>
+<span style=color:#a6e22e>eval</span> (<span style=color:#66d9ef>Mul</span> e1 e2) <span style=color:#f92672>=</span> eval e1 <span style=color:#f92672>*</span> eval e2    <span style=color:#75715e>-- 3.</span>
+</code></pre></div><ol>
+<li>This is the type signature. It says that eval is a function from our abstract syntax tree to an integer.</li>
+<li>Since we have three constructors in <code>AST</code> we naturally have three cases in <code>eval</code>. This is the first, and also the easiest.
+It says that <code>eval</code> applied to the value <code>Value n</code> is equal to <code>n</code>, or for imperative programers, given <code>Value n</code>, return <code>n</code>.</li>
+<li>These cases are more complex, but also straight forward. Given <code>Add e1 e2</code> eval both <code>e1</code> and <code>e2</code>, and add the answers. The same goes for <code>Mul</code> but multiply instead.</li>
+</ol>
+<p>Now for an example lets say we have an instance of <code>AST</code>:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-haskell data-lang=haskell><span style=color:#a6e22e>expr</span> <span style=color:#f92672>::</span> <span style=color:#66d9ef>AST</span>
+<span style=color:#a6e22e>expr</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>Add</span>
+        (<span style=color:#66d9ef>Value</span> <span style=color:#ae81ff>2</span>)
+        (<span style=color:#66d9ef>Mul</span>
+            (<span style=color:#66d9ef>Value</span> <span style=color:#ae81ff>3</span>)
+            (<span style=color:#66d9ef>Value</span> <span style=color:#ae81ff>5</span>))
+<span style=color:#75715e>-- expr = 2 + (3 * 5)</span>
+</code></pre></div><p>applying <code>eval</code> to <code>expr</code> yields:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-haskell data-lang=haskell><span style=color:#a6e22e>eval</span> expr <span style=color:#75715e>-- 17</span>
+</code></pre></div><p>Now lets see this in JS.</p>
+<h3 id=javascript>JavaScript</h3>
+<p>First up, the expression. JS does not have type declaration like Haskell does.
+In JS we instead just jump straight to making a instance of an AST.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#a6e22e>expr</span> <span style=color:#f92672>=</span> {
+    <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;add&#34;</span>,
+    <span style=color:#a6e22e>left</span><span style=color:#f92672>:</span> {
+        <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;value&#34;</span>,
+        <span style=color:#a6e22e>value</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>2</span>
+    },
+    <span style=color:#a6e22e>right</span><span style=color:#f92672>:</span> {
+        <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;mul&#34;</span>,
+        <span style=color:#a6e22e>left</span><span style=color:#f92672>:</span> {
+            <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;value&#34;</span>,
+            <span style=color:#a6e22e>value</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>3</span>
+        },
+        <span style=color:#a6e22e>right</span><span style=color:#f92672>:</span> {
+            <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;value&#34;</span>,
+            <span style=color:#a6e22e>value</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>5</span>
+        }
+    }
+}  
+<span style=color:#75715e>// expr = 2 + (3 * 5)
+</span></code></pre></div><p>In JS we use objects to handle the task of representing data. We use the <code>type</code> key to note the different constructors, and <code>left</code>,
+<code>right</code> and <code>value</code> will keep track of the data.</p>
+<p>An evaluator for this in JS might look like:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#66d9ef>function</span> eval(<span style=color:#a6e22e>ast</span>) {
+    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>ast</span>.<span style=color:#a6e22e>type</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#34;value&#34;</span>) {                     <span style=color:#75715e>// 1.
+</span><span style=color:#75715e></span>        <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>ast</span>.<span style=color:#a6e22e>value</span>;
+    }
+
+    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>ast</span>.<span style=color:#a6e22e>type</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#34;mul&#34;</span>) {                       <span style=color:#75715e>// 2.
+</span><span style=color:#75715e></span>        <span style=color:#66d9ef>return</span> eval(<span style=color:#a6e22e>ast</span>.<span style=color:#a6e22e>left</span>) <span style=color:#f92672>*</span> eval(<span style=color:#a6e22e>ast</span>.<span style=color:#a6e22e>right</span>);
+    } <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>ast</span>.<span style=color:#a6e22e>type</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#34;add&#34;</span>) {                <span style=color:#75715e>// 2.
+</span><span style=color:#75715e></span>        <span style=color:#66d9ef>return</span> eval(<span style=color:#a6e22e>ast</span>.<span style=color:#a6e22e>left</span>) <span style=color:#f92672>+</span> eval(<span style=color:#a6e22e>ast</span>.<span style=color:#a6e22e>right</span>);
+    }
+}
+
+eval(<span style=color:#a6e22e>expr</span>) <span style=color:#75715e>// 17
+</span></code></pre></div><ol>
+<li>If the type of <code>ast</code> is a value, simply return that value.</li>
+<li>Like in Haskell we add or multiply the two branches depending on the value of <code>type</code>.</li>
+</ol>
+<hr>
+<p><strong>NOTE</strong></p>
+<h5 id=this-is-unsafe-as-js-is-a-dynamic-language-and-the-value-ast-could-always-be-mistyped-in-this-post-we-will-continue-to-ignore-this-so-that-the-concepts-were-learning-are-more-clear>This is unsafe as JS is a dynamic language and the value <code>ast</code> could always be mistyped. In this post we will continue to ignore this, so that the concepts we&rsquo;re learning are more clear.</h5>
+<hr>
+<p>Not that we know what we are making, lets se if we could decouple the recursive aspect and the algebraic aspect of the evaluator.</p>
+<h2 id=fix>Fix</h2>
+<p>A fix point in math is a value <code>x</code> where a function <code>f(x) = x</code>. Basically the function returns the same value. We have these
+functions in programming as well. We can even represent the concept,
+which is what we seek to do.</p>
+<h2 id=fix-in-haskell>Fix in Haskell</h2>
+<p>We can represent a fix point data structure in Haskell like this:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-haskell data-lang=haskell><span style=color:#66d9ef>newtype</span> <span style=color:#66d9ef>Fix</span> f <span style=color:#f92672>=</span> <span style=color:#66d9ef>Fix</span> { unFix <span style=color:#f92672>::</span> f (<span style=color:#66d9ef>Fix</span> f) }
+</code></pre></div><p>This is a bit more complicated then <code>AST</code>. We pack some things into the type declaration. I&rsquo;ll explain them to the
+non-Haskellers. First of the <code>newtype</code> is like <code>data</code> but allows for more efficient representations, it only works when we
+only have one constructor. Since <code>Fix</code> can be sees as container, we might need a way to get data from that container.
+This is something that Haskell can automate for us, so instead for writing something similar to the first case in <code>eval</code>, e.g:
+<code>eval (Value n) = n</code>, we instead let Haskell do that by declaring the <code>unFix</code> function in the data declaration for <code>Fix</code>.
+So any application of <code>unFix</code> onto a value of <code>Fix</code> gives us the value <code>f (Fix f)</code>.</p>
+<p>Now for both Haskellers and others. The type <code>f (Fix f)</code> is kinda esoteric don&rsquo;t you think? But there is a some information we can
+hold on to, so as to guide our understanding. First notice that <code>f</code> must be a type constructor which accepts a parameter. In the
+context of <code>Fix</code> we fill that parameter with <code>(Fix f)</code>, a new iteration. This is what allows our <code>Fix</code> data type to act
+like a fix point in math. We can extract a new <code>Fix</code> context from the information in any other <code>Fix</code> context! The reason that the <code>f</code>
+is there is so we can fill our <code>Fix</code> context with more information, for example an algebra. You might see where this is heading.
+We have a data structure which hold information of how to recurse, and can be filled with other info in between the recursive points.</p>
+<p>This is what we wanted when we sought to decouple the recursion and algebra of <code>eval</code>!</p>
+<h3 id=using-fix>Using Fix</h3>
+<p>So, what can we put in place of <code>f</code>? Well lets say we have a different version of <code>AST</code>, one which is no longer recursive.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-haskell data-lang=haskell><span style=color:#66d9ef>data</span> <span style=color:#66d9ef>AST</span> r <span style=color:#f92672>=</span> <span style=color:#66d9ef>Value</span> <span style=color:#66d9ef>Int</span>
+           <span style=color:#f92672>|</span> <span style=color:#66d9ef>Add</span> r r
+           <span style=color:#f92672>|</span> <span style=color:#66d9ef>Mul</span> r r
+           <span style=color:#66d9ef>deriving</span> <span style=color:#66d9ef>Show</span>
+</code></pre></div><p>Looks rather familiar, but the <code>r</code> is new, and it replaced <code>AST</code> in <code>Add</code> and <code>Mul</code>. So we created a more flexible version of <code>AST</code>.
+This means that <code>AST</code> now has a type parameter, and therefore fits in <code>Fix f</code> as a replacement for <code>f</code>.</p>
+<p>We can now make an expression using fix:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-haskell data-lang=haskell><span style=color:#a6e22e>exprFix</span> <span style=color:#f92672>::</span> <span style=color:#66d9ef>Fix</span> <span style=color:#66d9ef>AST</span>                          <span style=color:#75715e>-- 1.</span>
+<span style=color:#a6e22e>exprFix</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>Fix</span> (<span style=color:#66d9ef>Add</span>                          <span style=color:#75715e>-- 2.</span>
+                (<span style=color:#66d9ef>Fix</span> (<span style=color:#66d9ef>Value</span> <span style=color:#ae81ff>2</span>))             
+                (<span style=color:#66d9ef>Fix</span> (<span style=color:#66d9ef>Mul</span> 
+                        (<span style=color:#66d9ef>Fix</span> (<span style=color:#66d9ef>Value</span> <span style=color:#ae81ff>3</span>)) 
+                        (<span style=color:#66d9ef>Fix</span> (<span style=color:#66d9ef>Value</span> <span style=color:#ae81ff>5</span>)))))
+</code></pre></div><ol>
+<li>The type signatur tells us that <code>AST</code> took the place of <code>f</code> in <code>Fix f</code>. Likewise <code>Fix AST</code> takes the place of <code>r</code> in <code>AST</code>, although you can&rsquo;t see it her it follows from the definition of <code>Fix</code>.</li>
+<li>Her we see that we build the data structure using <code>Fix</code> for recursion and <code>AST</code> to hold values. Notice the <code>Fix,AST,Fix,AST</code> pattern, toggling between the to each time. Also see that since <code>Value</code> does not contain any <code>Fix</code>, it terminates the recursion. Therefore the data structure need not be infinite.</li>
+</ol>
+<h3 id=folding-fix>Folding fix</h3>
+<p>So we have this data type, but we still need to use it somehow. It&rsquo;s intent is to represent recursion, so a neat thing would be
+to be able to fold it, get a value from the values in the structure. This function is from the Haskell implementation of fix, and
+it can be a bit tricky.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-haskell data-lang=haskell><span style=color:#a6e22e>foldFix</span> <span style=color:#f92672>::</span> <span style=color:#66d9ef>Functor</span> h <span style=color:#f92672>=&gt;</span> (h a <span style=color:#f92672>-&gt;</span> a) <span style=color:#f92672>-&gt;</span> <span style=color:#66d9ef>Fix</span> a <span style=color:#f92672>-&gt;</span> a    <span style=color:#75715e>-- 1.</span>
+<span style=color:#a6e22e>foldFix</span> f <span style=color:#f92672>=</span> go <span style=color:#66d9ef>where</span> go <span style=color:#f92672>=</span> f <span style=color:#f92672>.</span> fmap go <span style=color:#f92672>.</span> unFix       <span style=color:#75715e>-- 2.</span>
+</code></pre></div><ol>
+<li>
+<p>This type signatur is more involved than previously seen in this post. The first part says that we need <code>h</code> to be a functor.
+In our example the functor will be <code>AST</code>, we will see later that it&rsquo;s trivial to make <code>AST</code> a functor. Next we take a function from
+a functor <code>h a</code> to the value it holds <code>a</code>. Repeatedly applying this function to the <code>Fix a</code> structure will yield an <code>a</code>.</p>
+</li>
+<li>
+<p>Now lets look at this <code>go</code> function. It first un fixes the fix structure, this gives us the expression <code>f (Fix f)</code>.
+Then it maps the function <code>go</code> (itself!) onto the result from fix?!, but that means we recurse forever, right? <code>f</code> is never called.
+No, the function in <code>fmap</code> may not always be used, so if the value in <code>f</code> is not one where <code>go</code> is used, then the recursion stops!
+And after that we apply <code>f</code>. The trick then is that the values where <code>go</code> is unused is the one where <code>a</code> is contained.</p>
+</li>
+</ol>
+<p>Now lets see that functor implementation for <code>AST</code>.</p>
+<h3 id=functor>Functor</h3>
+<p>To make something a functor it need to implement fmap, thats it! Well the implementation should not alter the structure, but thats
+pretty simple to accomplish. Basically, <code>Value</code> becomes <code>Value</code>, <code>Add</code> becomes <code>Add</code>, and you can guess what <code>Mul</code> becomes.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-haskell data-lang=haskell><span style=color:#66d9ef>instance</span> <span style=color:#66d9ef>Functor</span> <span style=color:#66d9ef>AST</span> <span style=color:#66d9ef>where</span>
+    fmap <span style=color:#66d9ef>_</span> (<span style=color:#66d9ef>Value</span> n) <span style=color:#f92672>=</span> <span style=color:#66d9ef>Value</span> n
+    fmap f (<span style=color:#66d9ef>Add</span> a b) <span style=color:#f92672>=</span> <span style=color:#66d9ef>Add</span> (f a) (f b)
+    fmap f (<span style=color:#66d9ef>Mul</span> a b) <span style=color:#f92672>=</span> <span style=color:#66d9ef>Mul</span> (f a) (f b)
+</code></pre></div><p>Its really a very simple functor. Just apply the function to the instances of <code>r</code>.</p>
+<h3 id=algebra>Algebra</h3>
+<p>Now that all the components to make fix work is in place, we can look at the algebra. See how simple it is? This is the reward!</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-haskell data-lang=haskell><span style=color:#a6e22e>algebra</span> <span style=color:#f92672>::</span> <span style=color:#66d9ef>AST</span> <span style=color:#66d9ef>Int</span> <span style=color:#f92672>-&gt;</span> <span style=color:#66d9ef>Int</span>       <span style=color:#75715e>-- 1.</span>
+<span style=color:#a6e22e>algebra</span> (<span style=color:#66d9ef>Value</span> n)   <span style=color:#f92672>=</span> n         <span style=color:#75715e>-- 2.</span>
+<span style=color:#a6e22e>algebra</span> (<span style=color:#66d9ef>Add</span> a1 a2) <span style=color:#f92672>=</span> a1 <span style=color:#f92672>+</span> a2   <span style=color:#75715e>-- 3.</span>
+<span style=color:#a6e22e>algebra</span> (<span style=color:#66d9ef>Mul</span> a1 a2) <span style=color:#f92672>=</span> a1 <span style=color:#f92672>*</span> a2   <span style=color:#75715e>-- 3.</span>
+</code></pre></div><ol>
+<li>Notice that this time our evaluation goes from an <code>AST Int</code> to <code>Int</code>. That <code>Int</code> is important!</li>
+<li>The <code>Value n</code> case is once again dead simple, its just equal to <code>n</code>.</li>
+<li>But this time those other cases are also simple. Think about it, they merly says that adding or multiplying to numbers is the
+same as adding or multiplying two numbers.</li>
+</ol>
+<h3 id=putting-it-together>Putting it Together</h3>
+<p>The last bit is writing the eval function, this is surprisingly easy.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-haskell data-lang=haskell><span style=color:#a6e22e>evalFix</span> <span style=color:#f92672>::</span> <span style=color:#66d9ef>Fix</span> <span style=color:#66d9ef>AST</span> <span style=color:#f92672>-&gt;</span> <span style=color:#66d9ef>Int</span>
+<span style=color:#a6e22e>evalFix</span> <span style=color:#f92672>=</span> foldFix algebra  
+
+
+<span style=color:#a6e22e>evalFix</span> exprFix <span style=color:#75715e>-- 17</span>
+</code></pre></div><p>There that was all. Just fold over a <code>Fix AST</code> using <code>algebra</code>. Lets try to copy this in JS.</p>
+<h2 id=fix-in-javascript>Fix in JavaScript</h2>
+<p>Lets start this off by once again looking at the expression.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#a6e22e>exprFix</span> <span style=color:#f92672>=</span> {
+    <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;fix&#34;</span>,
+    <span style=color:#a6e22e>item</span><span style=color:#f92672>:</span> {
+        <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;add&#34;</span>,
+        <span style=color:#a6e22e>left</span><span style=color:#f92672>:</span> {
+            <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;fix&#34;</span>,
+            <span style=color:#a6e22e>item</span><span style=color:#f92672>:</span> {
+                <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;value&#34;</span>,
+                <span style=color:#a6e22e>value</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>2</span>
+            }
+        },
+        <span style=color:#a6e22e>right</span><span style=color:#f92672>:</span> {
+            <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;fix&#34;</span>,
+            <span style=color:#a6e22e>item</span><span style=color:#f92672>:</span> {
+                <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;mul&#34;</span>,
+                <span style=color:#a6e22e>left</span><span style=color:#f92672>:</span> {
+                    <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;fix&#34;</span>,
+                    <span style=color:#a6e22e>item</span><span style=color:#f92672>:</span> {
+                        <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;value&#34;</span>,
+                        <span style=color:#a6e22e>value</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>3</span>
+                    }
+                },
+                <span style=color:#a6e22e>right</span><span style=color:#f92672>:</span> {
+                    <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;fix&#34;</span>,
+                    <span style=color:#a6e22e>item</span><span style=color:#f92672>:</span> {
+                        <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;value&#34;</span>,
+                        <span style=color:#a6e22e>value</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>5</span>
+                    }
+                }
+            }
+        }
+    }
+}
+</code></pre></div><p>Well this is a lot more bloated than the first expression. But the gain will be the same in JS as in Haskell. This is really two
+data structures in one. One of which act as recursive points, the other holds the actual values.</p>
+<p>We need an <code>unFix</code> function her as well, so to make things more obvious later. Well also define a map function now that it&rsquo;s usage
+is known.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>unFix</span>(<span style=color:#a6e22e>fix</span>) {
+    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>fix</span>.<span style=color:#a6e22e>item</span>;
+}
+
+<span style=color:#66d9ef>function</span> <span style=color:#a6e22e>mapExpr</span>(<span style=color:#a6e22e>fn</span>, <span style=color:#a6e22e>ast</span>) {
+    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>ast</span>.<span style=color:#a6e22e>type</span> <span style=color:#f92672>!==</span> <span style=color:#e6db74>&#34;value&#34;</span>) {
+        <span style=color:#a6e22e>ast</span>.<span style=color:#a6e22e>left</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>fn</span>(<span style=color:#a6e22e>ast</span>.<span style=color:#a6e22e>left</span>);
+        <span style=color:#a6e22e>ast</span>.<span style=color:#a6e22e>right</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>fn</span>(<span style=color:#a6e22e>ast</span>.<span style=color:#a6e22e>right</span>);
+    }
+
+    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>ast</span>;  
+}
+</code></pre></div><h3 id=folding-in-javascript>Folding in JavaScript</h3>
+<p>Now lets see if we can define the <code>foldFix</code> function. I came up with this:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>foldFix</span>(<span style=color:#a6e22e>f</span>, <span style=color:#a6e22e>fix</span>) {
+    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>go</span> <span style=color:#f92672>=</span> (<span style=color:#a6e22e>iter</span>) =&gt; {
+        <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>f</span>(<span style=color:#a6e22e>mapExpr</span>(<span style=color:#a6e22e>go</span>, <span style=color:#a6e22e>unFix</span>(<span style=color:#a6e22e>iter</span>)));
+    };
+    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>go</span>(<span style=color:#a6e22e>fix</span>);
+}
+</code></pre></div><p>This is the same technique used in Haskell. It works just as fine in JS. <code>foldFix</code> accepts two arguments, one is the function that
+does the &ldquo;work&rdquo; and the other is the fix data structure. Inside <code>foldFix</code> we define a function <code>go</code> that takes care of the recursing.
+First by unfixing the fix point, then mapping itself onto the result, lastly calling the working function on the result.</p>
+<p>This made it more apparent to me why this technique works, and why the type signature of <code>algebra</code> was <code>AST Int -> Int</code>. The <code>go</code>
+function first &ldquo;digs&rdquo; itself into the structure, and then phi is applied on the way out again. Therefore it&rsquo;s guarantied that when
+the <code>phi</code> function is applied, the content in the structure at that point is already folded.</p>
+<h3 id=eval>Eval</h3>
+<p>The rest of the code is pretty straight forward so I&rsquo;ll just show you.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>algebra</span>(<span style=color:#a6e22e>ast</span>) {
+    <span style=color:#66d9ef>switch</span> (<span style=color:#a6e22e>ast</span>.<span style=color:#a6e22e>type</span>) {
+        <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#34;value&#34;</span><span style=color:#f92672>:</span>
+            <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>ast</span>.<span style=color:#a6e22e>value</span>;
+        <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#34;add&#34;</span><span style=color:#f92672>:</span>
+            <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>ast</span>.<span style=color:#a6e22e>left</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>ast</span>.<span style=color:#a6e22e>right</span>;
+        <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#34;mul&#34;</span><span style=color:#f92672>:</span>
+            <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>ast</span>.<span style=color:#a6e22e>left</span> <span style=color:#f92672>*</span> <span style=color:#a6e22e>ast</span>.<span style=color:#a6e22e>right</span>;
+    }
+}
+
+<span style=color:#66d9ef>function</span> <span style=color:#a6e22e>evalFix</span>(<span style=color:#a6e22e>ast</span>) {
+    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>foldFix</span>(<span style=color:#a6e22e>algebra</span>, <span style=color:#a6e22e>ast</span>);
+}
+
+<span style=color:#a6e22e>evalFix</span>(<span style=color:#a6e22e>exprFix</span>) <span style=color:#75715e>// 17
+</span></code></pre></div><h2 id=free>Free</h2>
+<p>Fix is great an all, but that <code>Value</code> type was a nuisance. It didn&rsquo;t really need to be fixed, but because of how <code>Fix</code> was
+specified we needed to put it in a <code>Fix</code> constructor in order to fit it into the data structure. This aided in bloating the
+expression, but it turnes out that solving this problem gives us more power as well.</p>
+<p>You see, we can solve it by giving <code>Fix</code> another constructor. This acts like <code>Value</code>. If we do this we will have
+created whats known as the free monad. What this means is that we can make a structure much like fix, and define functor, applicative
+and monad type classes for this structure. Then we can intervene another data structure like <code>AST</code> and automatically have
+those type classes defined for the new intervened structure!</p>
+<p>Lets get to it.</p>
+<h2 id=free-in-haskell>Free in Haskell</h2>
+<p>The free monad is gonna look familiar.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-haskell data-lang=haskell><span style=color:#66d9ef>data</span> <span style=color:#66d9ef>Free</span> f a <span style=color:#f92672>=</span> <span style=color:#66d9ef>Pure</span> a <span style=color:#f92672>|</span> <span style=color:#66d9ef>Free</span> (f (<span style=color:#66d9ef>Free</span> f a))
+</code></pre></div><p>Seen something like this before?</p>
+<p>The <code>a</code> is new, and so is <code>Pure a</code>. We already discussed how this will help us so lets not repeat ourself.</p>
+<p>Since defining this as a functor, applicative or monad isn&rsquo;t gonna help us reach our goal I&rsquo;ll just leave it as an exercise. In the links section of this post there is a link to all code on my github. There you will find the answers.</p>
+<h3 id=using-fix-1>Using Fix</h3>
+<p>So lets redefine <code>AST</code> a final time.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-haskell data-lang=haskell><span style=color:#66d9ef>data</span> <span style=color:#66d9ef>AST</span> r <span style=color:#f92672>=</span> <span style=color:#66d9ef>Add</span> r r 
+           <span style=color:#f92672>|</span> <span style=color:#66d9ef>Mul</span> r r 
+
+<span style=color:#66d9ef>instance</span> <span style=color:#66d9ef>Functor</span> <span style=color:#66d9ef>AST</span> <span style=color:#66d9ef>where</span>
+    fmap f (<span style=color:#66d9ef>Add</span> a b) <span style=color:#f92672>=</span> <span style=color:#66d9ef>Add</span> (f a) (f b)
+    fmap f (<span style=color:#66d9ef>Mul</span> a b) <span style=color:#f92672>=</span> <span style=color:#66d9ef>Mul</span> (f a) (f b)
+</code></pre></div><p>Nothing is new here, rather something is missing.</p>
+<h3 id=folding-free>Folding Free</h3>
+<p>One neat thing about the <code>Free</code> is that, in my opinion, its fold function is clearer than <code>Fix</code>.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-haskell data-lang=haskell><span style=color:#a6e22e>foldFree</span> <span style=color:#f92672>::</span> <span style=color:#66d9ef>Functor</span> f <span style=color:#f92672>=&gt;</span> (f a <span style=color:#f92672>-&gt;</span> a) <span style=color:#f92672>-&gt;</span> <span style=color:#66d9ef>Free</span> f a <span style=color:#f92672>-&gt;</span> a    <span style=color:#75715e>-- 1.</span>
+<span style=color:#a6e22e>foldFree</span> <span style=color:#66d9ef>_</span>   (<span style=color:#66d9ef>Pure</span> a) <span style=color:#f92672>=</span> a                               <span style=color:#75715e>-- 2. </span>
+<span style=color:#a6e22e>foldFree</span> phi (<span style=color:#66d9ef>Free</span> m) <span style=color:#f92672>=</span> phi (fmap (foldFree phi) m)     <span style=color:#75715e>-- 3.</span>
+</code></pre></div><ol>
+<li>Pretty much the same as fix, although its more obvious where the <code>a</code> value originates.</li>
+<li>This one is dead simple, if the value is <code>Pure a</code> return <code>a</code>. This also makes the termination obvious.</li>
+<li>Same as with fix. Instead of using a function, i.e. <code>unFix</code>, to deconstruct the data structure, we instead use pattern matching.</li>
+</ol>
+<h3 id=finally-using-free>Finally Using Free</h3>
+<p>Now lets create an expression using <code>Free</code>.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-haskell data-lang=haskell><span style=color:#a6e22e>exprFree</span> <span style=color:#f92672>::</span> <span style=color:#66d9ef>Free</span> <span style=color:#66d9ef>AST</span> <span style=color:#66d9ef>Int</span>
+<span style=color:#a6e22e>exprFree</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>Free</span> (<span style=color:#66d9ef>Add</span>
+                    (<span style=color:#66d9ef>Pure</span> <span style=color:#ae81ff>2</span>)
+                    (<span style=color:#66d9ef>Free</span> (<span style=color:#66d9ef>Mul</span>
+                            (<span style=color:#66d9ef>Pure</span> <span style=color:#ae81ff>3</span>)
+                            (<span style=color:#66d9ef>Pure</span> <span style=color:#ae81ff>5</span>))))
+</code></pre></div><p>More involved than <code>expr</code>, but less so than <code>exprFix</code>. Writing the <code>algebra</code> function is the same, but we can now drop the <code>Value</code> case.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-haskell data-lang=haskell><span style=color:#a6e22e>algebra</span> <span style=color:#f92672>::</span> <span style=color:#66d9ef>AST</span> <span style=color:#66d9ef>Int</span> <span style=color:#f92672>-&gt;</span> <span style=color:#66d9ef>Int</span>
+<span style=color:#a6e22e>algebra</span> (<span style=color:#66d9ef>Add</span> a b) <span style=color:#f92672>=</span> a <span style=color:#f92672>+</span> b
+<span style=color:#a6e22e>algebra</span> (<span style=color:#66d9ef>Mul</span> a b) <span style=color:#f92672>=</span> a <span style=color:#f92672>*</span> b
+</code></pre></div><p>Lastly the eval function is just as easy.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-haskell data-lang=haskell><span style=color:#a6e22e>evalFree</span> <span style=color:#f92672>::</span> <span style=color:#66d9ef>Free</span> <span style=color:#66d9ef>AST</span> <span style=color:#66d9ef>Int</span> <span style=color:#f92672>-&gt;</span> <span style=color:#66d9ef>Int</span> 
+<span style=color:#a6e22e>evalFree</span> <span style=color:#f92672>=</span> foldFree algebra
+
+<span style=color:#a6e22e>evalFree</span> exprFree <span style=color:#75715e>-- 17</span>
+</code></pre></div><h2 id=free-in-javascript>Free in JavaScript</h2>
+<p>Now lets see what this does for the JS implementation.</p>
+<p>Like previously we start with the expression.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#a6e22e>exprFree</span> <span style=color:#f92672>=</span> {
+    <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;free&#34;</span>,
+    <span style=color:#a6e22e>item</span><span style=color:#f92672>:</span> {
+        <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;add&#34;</span>,
+        <span style=color:#a6e22e>left</span><span style=color:#f92672>:</span> {
+            <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;pure&#34;</span>,
+            <span style=color:#a6e22e>item</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>2</span>
+        },
+        <span style=color:#a6e22e>right</span><span style=color:#f92672>:</span> {
+            <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;free&#34;</span>,
+            <span style=color:#a6e22e>item</span><span style=color:#f92672>:</span> {
+                <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;mul&#34;</span>,
+                <span style=color:#a6e22e>left</span><span style=color:#f92672>:</span> {
+                    <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;pure&#34;</span>,
+                    <span style=color:#a6e22e>item</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>3</span>
+                },
+                <span style=color:#a6e22e>right</span><span style=color:#f92672>:</span> {
+                    <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;pure&#34;</span>,
+                    <span style=color:#a6e22e>item</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>5</span>
+                }
+            }
+        }
+    }
+}
+</code></pre></div><p>As you could imagine it&rsquo;s more succinct. Now for the rest, we can be a bit cheeky her, since we have two function that already works for AST.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#75715e>/* copy mapExpr and algebra from fix. JS is dynamic so they still work */</span>
+
+<span style=color:#66d9ef>function</span> <span style=color:#a6e22e>unFree</span>(<span style=color:#a6e22e>free</span>) {
+    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>free</span>.<span style=color:#a6e22e>item</span>;
+}
+
+<span style=color:#66d9ef>function</span> <span style=color:#a6e22e>foldFree</span>(<span style=color:#a6e22e>phi</span>, <span style=color:#a6e22e>free</span>) {
+    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>free</span>.<span style=color:#a6e22e>type</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#34;pure&#34;</span>) {
+        <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>unFree</span>(<span style=color:#a6e22e>free</span>);
+    }
+    <span style=color:#75715e>// otherwise free.type === &#34;free&#34;
+</span><span style=color:#75715e></span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>phi</span>(<span style=color:#a6e22e>mapExpr</span>(<span style=color:#a6e22e>x</span> =&gt; <span style=color:#a6e22e>foldFree</span>(<span style=color:#a6e22e>phi</span>, <span style=color:#a6e22e>x</span>), <span style=color:#a6e22e>unFree</span>(<span style=color:#a6e22e>free</span>)));
+}
+</code></pre></div><p>I defined <code>unFree</code> mostly for clarity. There is no <code>go</code> function here, instead <code>foldFree</code> is the recursive function. This is
+also what we did in Haskell. If we get a pure value we terminate and return the item in pure, otherwise we do the same type of recursion we did for fix.</p>
+<p>The rest is the same, just like with Haskell.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>evalFree</span>(<span style=color:#a6e22e>ast</span>) {
+    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>foldFree</span>(<span style=color:#a6e22e>algebra</span>, <span style=color:#a6e22e>ast</span>);
+}
+
+<span style=color:#a6e22e>evalFree</span>(<span style=color:#a6e22e>exprFree</span>) <span style=color:#75715e>// 17
+</span></code></pre></div><h2 id=conclusion>Conclusion</h2>
+<p>We see that both those concepts translates to JS, with out much stretch as well. Both does something for DRY programming, although
+they might not have the same yield in JS as in Haskell.</p>
+<p>Still seeing a very Haskell-ish concept translate so easily to another language is neat, I think learning more Haskell is
+gonna be more valuable for the JS programmer in me.</p>
+<p>I recommend trying something similar yourself.</p>
+<h2 id=links>Links</h2>
+<p><a href=https://chrispenner.ca/posts/asts-with-fix-and-free>Chris Penners article was the inspiration for this post</a><br>
+<a href=https://en.wikibooks.org/wiki/Haskell/Fix_and_recursion>Wikibooks chapter on fix</a><br>
+<a href=https://stackoverflow.com/questions/13352205/what-are-free-monads>Stackoverflow thread on free</a><br>
+<a href=https://en.wikipedia.org/wiki/Fixed_point_%28mathematics%29>Wikipedia on fixed points</a></p>
+</div>
+<div class=post-footer>
+</div>
+</article>
+</main>
+</body>
+</html>
