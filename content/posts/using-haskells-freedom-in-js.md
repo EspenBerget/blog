@@ -164,8 +164,8 @@ exprFix = Fix (Add                          -- 2.
                         (Fix (Value 3)) 
                         (Fix (Value 5)))))
 ```
-1. The type signatur tells us that `AST` took the place of `f` in `Fix f`. Likewise `Fix AST` takes the place of `r` in `AST`, although you can't see it her it follows from the definition of `Fix`.
-2. Her we see that we build the data structure using `Fix` for recursion and `AST` to hold values. Notice the `Fix,AST,Fix,AST` pattern, toggling between the to each time. Also see that since `Value` does not contain any `Fix`, it terminates the recursion. Therefore the data structure need not be infinite.
+1. The type signatur tells us that `AST` took the place of `f` in `Fix f`. Likewise `Fix AST` takes the place of `r` in `AST`, although you can't see it here it follows from the definition of `Fix`.
+2. Here we see that we build the data structure using `Fix` for recursion and `AST` to hold values. Notice the `Fix,AST,Fix,AST` pattern, toggling between the to each time. Also see that since `Value` does not contain any `Fix`, it terminates the recursion. Therefore the data structure need not be infinite.
 
 ### Folding fix
 So we have this data type, but we still need to use it somehow. It's intent is to represent recursion, so a neat thing would be
@@ -265,7 +265,7 @@ exprFix = {
 Well this is a lot more bloated than the first expression. But the gain will be the same in JS as in Haskell. This is really two
 data structures in one. One of which act as recursive points, the other holds the actual values.
 
-We need an `unFix` function her as well, so to make things more obvious later. Well also define a map function now that it's usage
+We need an `unFix` function here as well, so to make things more obvious later. Well also define a map function now that it's usage
 is known.
 ```javascript
 function unFix(fix) {
