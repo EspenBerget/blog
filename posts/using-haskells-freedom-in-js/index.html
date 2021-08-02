@@ -172,8 +172,8 @@ This means that <code>AST</code> now has a type parameter, and therefore fits in
                         (<span style=color:#66d9ef>Fix</span> (<span style=color:#66d9ef>Value</span> <span style=color:#ae81ff>3</span>)) 
                         (<span style=color:#66d9ef>Fix</span> (<span style=color:#66d9ef>Value</span> <span style=color:#ae81ff>5</span>)))))
 </code></pre></div><ol>
-<li>The type signatur tells us that <code>AST</code> took the place of <code>f</code> in <code>Fix f</code>. Likewise <code>Fix AST</code> takes the place of <code>r</code> in <code>AST</code>, although you can&rsquo;t see it her it follows from the definition of <code>Fix</code>.</li>
-<li>Her we see that we build the data structure using <code>Fix</code> for recursion and <code>AST</code> to hold values. Notice the <code>Fix,AST,Fix,AST</code> pattern, toggling between the to each time. Also see that since <code>Value</code> does not contain any <code>Fix</code>, it terminates the recursion. Therefore the data structure need not be infinite.</li>
+<li>The type signatur tells us that <code>AST</code> took the place of <code>f</code> in <code>Fix f</code>. Likewise <code>Fix AST</code> takes the place of <code>r</code> in <code>AST</code>, although you can&rsquo;t see it here it follows from the definition of <code>Fix</code>.</li>
+<li>Here we see that we build the data structure using <code>Fix</code> for recursion and <code>AST</code> to hold values. Notice the <code>Fix,AST,Fix,AST</code> pattern, toggling between the to each time. Also see that since <code>Value</code> does not contain any <code>Fix</code>, it terminates the recursion. Therefore the data structure need not be infinite.</li>
 </ol>
 <h3 id=folding-fix>Folding fix</h3>
 <p>So we have this data type, but we still need to use it somehow. It&rsquo;s intent is to represent recursion, so a neat thing would be
@@ -260,7 +260,7 @@ same as adding or multiplying two numbers.</li>
 }
 </code></pre></div><p>Well this is a lot more bloated than the first expression. But the gain will be the same in JS as in Haskell. This is really two
 data structures in one. One of which act as recursive points, the other holds the actual values.</p>
-<p>We need an <code>unFix</code> function her as well, so to make things more obvious later. Well also define a map function now that it&rsquo;s usage
+<p>We need an <code>unFix</code> function here as well, so to make things more obvious later. Well also define a map function now that it&rsquo;s usage
 is known.</p>
 <div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>unFix</span>(<span style=color:#a6e22e>fix</span>) {
     <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>fix</span>.<span style=color:#a6e22e>item</span>;
