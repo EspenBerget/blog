@@ -14,4 +14,14 @@ description = "Computer programmer, interested in functional programming, web de
 [[params.social]]
   icon = "github"
   name = "My Github"
-  url = "https://github.com/EspenBerget"
+  url  = "https://github.com/EspenBerget"
+
+[[params.social]]
+    icon = "mail"
+    name = "My email"
+    url  = "mailto:espen.berget@tuta.io"
+
+[[params.social]]
+    icon = "twitter"
+    name = "My Twitter"
+    url  = "https://twitter.com/espen_berget"
