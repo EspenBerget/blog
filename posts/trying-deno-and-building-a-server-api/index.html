@@ -1,0 +1,401 @@
+<!doctype html><html lang=en-us>
+<head>
+<title>Trying Deno and Building a Server API // Espen Berget's Coding Blog</title>
+<link rel="shortcut icon" href=/favicon.ico>
+<meta charset=utf-8>
+<meta name=generator content="Hugo 0.87.0">
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=author content="Espen Berget">
+<meta name=description content>
+<link rel=stylesheet href=https://EspenBerget.github.io/css/main.min.4a7ec8660f9a44b08c4da97c5f2e31b1192df1d4d0322e65c0dbbc6ecb1b863f.css>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Trying Deno and Building a Server API">
+<meta name=twitter:description content="I&rsquo;ve looked at Deno a couple of times, but never tried it. About a week ago I decided that it was time. Deno have some nice builtin features that you have to use third party libraries to get with node.
+I decided to see what it was like to make something using Deno.
+Deno What deno will give me is a easy way to manage my dependencies, and also running and watching the app effortlessly.">
+<meta property="og:title" content="Trying Deno and Building a Server API">
+<meta property="og:description" content="I&rsquo;ve looked at Deno a couple of times, but never tried it. About a week ago I decided that it was time. Deno have some nice builtin features that you have to use third party libraries to get with node.
+I decided to see what it was like to make something using Deno.
+Deno What deno will give me is a easy way to manage my dependencies, and also running and watching the app effortlessly.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://EspenBerget.github.io/posts/trying-deno-and-building-a-server-api/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2021-08-17T17:44:46+02:00">
+<meta property="article:modified_time" content="2021-08-17T17:44:46+02:00">
+</head>
+<body>
+<header class=app-header>
+<a href=https://EspenBerget.github.io/><img class=app-header-avatar src=/images/me.png alt="Espen Berget"></a>
+<h1>Espen Berget's Coding Blog</h1>
+<p>Computer programmer, interested in functional programming, web development, and the nix ecosystem.</p>
+<div class=app-header-social>
+<a href=https://github.com/EspenBerget target=_blank rel="noreferrer noopener"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-github"><title>My Github</title><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37.0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44.0 0020 4.77 5.07 5.07.0 0019.91 1S18.73.65 16 2.48a13.38 13.38.0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07.0 005 4.77 5.44 5.44.0 003.5 8.55c0 5.42 3.3 6.61 6.44 7A3.37 3.37.0 009 18.13V22"/></svg>
+</a>
+<a href=mailto:espen.berget@tuta.io target=_blank rel="noreferrer noopener"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-mail"><title>My email</title><path d="M4 4h16c1.1.0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1.0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+</a>
+<a href=https://twitter.com/espen_berget target=_blank rel="noreferrer noopener"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-twitter"><title>My Twitter</title><path d="M23 3a10.9 10.9.0 01-3.14 1.53 4.48 4.48.0 00-7.86 3v1A10.66 10.66.0 013 4s-4 9 5 13a11.64 11.64.0 01-7 2c9 5 20 0 20-11.5a4.5 4.5.0 00-.08-.83A7.72 7.72.0 0023 3z"/></svg>
+</a>
+</div>
+</header>
+<main class=app-container>
+<article class=post>
+<header class=post-header>
+<h1 class=post-title>Trying Deno and Building a Server API</h1>
+<div class=post-meta>
+<div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar"><title>calendar</title><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+Aug 17, 2021
+</div>
+<div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock"><title>clock</title><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+11 min read
+</div>
+</div>
+</header>
+<div class=post-content>
+<p>I&rsquo;ve looked at Deno a couple of times, but never tried it. About a week ago I decided that it was time. Deno have some nice builtin features that you have to use third party libraries to get with node.</p>
+<p>I decided to see what it was like to make something using Deno.</p>
+<h2 id=deno>Deno</h2>
+<p>What deno will give me is a easy way to manage my dependencies, and also running and watching the app effortlessly.
+It also give me stricter control of the resources used by my app, for example networking or reading/writing to files.</p>
+<h3 id=imports>Imports</h3>
+<p>So in deno you can import a resource directly from the web. This is something Go users will be familiar with, but we also do it
+in JavaScript, just not in node. In HTML on the other hand we can import resources from other sites with the script tag. Deno gives us this directly in the <code>import</code> statement. We will use this to import two libraries that we need to make our server.
+They are:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>DB</span> } <span style=color:#a6e22e>from</span> <span style=color:#e6db74>&#34;https://deno.land/x/sqlite@v3.0.0/mod.ts&#34;</span>;
+<span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>serve</span> } <span style=color:#a6e22e>from</span> <span style=color:#e6db74>&#34;https://deno.land/std@0.103.0/http/server.ts&#34;</span>;
+</code></pre></div><blockquote>
+<h5 id=these-imports-bind-our-version-to-a-given-release-this-is-good-practice-as-without-explicitly-stating-package-version-we-can-end-up-with-a-new-version-of-http-server-in-the-middle-of-not-only-production-but-also-development>These imports bind our version to a given release. This is good practice as without explicitly stating package version we can end up with a new version of http server in the middle of not only production, but also development.</h5>
+</blockquote>
+<p>With these two imports I have declared all my dependencies for this app, no package.json needed.</p>
+<h2 id=the-database>The Database</h2>
+<p>The database is dead simple. It only holds a single table called events. It is used to track all types of events given only a
+description of the event. Its not ment to be practical, only to serve the role of a issue that needs the typical HTTP request methods
+to be implemented. We can make an event, delete it, patch it, or query it. The table looks like:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>    <span style=color:#66d9ef>CREATE</span> <span style=color:#66d9ef>TABLE</span> <span style=color:#66d9ef>IF</span> <span style=color:#66d9ef>NOT</span> <span style=color:#66d9ef>EXISTS</span> events (
+        id INTEGER <span style=color:#66d9ef>PRIMARY</span> <span style=color:#66d9ef>KEY</span> AUTOINCREMENT,
+        <span style=color:#66d9ef>desc</span> TEXT,                                       <span style=color:#75715e>-- 1.
+</span><span style=color:#75715e></span>        <span style=color:#66d9ef>at</span> <span style=color:#66d9ef>TIMESTAMP</span> <span style=color:#66d9ef>NOT</span> <span style=color:#66d9ef>NULL</span> <span style=color:#66d9ef>DEFAULT</span> <span style=color:#66d9ef>CURRENT_TIMESTAMP</span>
+    )
+</code></pre></div><ol>
+<li>desc is short for description.</li>
+</ol>
+<p>Using the <code>DB</code> import from above. We make a new instance with</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>db</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>DB</span>(<span style=color:#e6db74>&#39;events.db&#39;</span>);
+</code></pre></div><p>Now we have a sqlite file called <code>events.db</code> and a way to interface with it using the <code>db</code> object. The function <code>db.query</code> will
+be heavily relied on, as it runs all sql queries, be it making a table, updating or removing.</p>
+<h5 id=dbjs><strong><code>db.js</code></strong></h5>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>DB</span> } <span style=color:#a6e22e>from</span> <span style=color:#e6db74>&#34;https://deno.land/x/sqlite@v3.0.0/mod.ts&#34;</span>;
+
+<span style=color:#75715e>// Open database
+</span><span style=color:#75715e></span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>db</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>DB</span>(<span style=color:#e6db74>&#34;events.db&#34;</span>);
+
+<span style=color:#75715e>// Setup table 
+</span><span style=color:#75715e></span><span style=color:#a6e22e>db</span>.<span style=color:#a6e22e>query</span>(<span style=color:#e6db74>`
+</span><span style=color:#e6db74>    CREATE TABLE IF NOT EXISTS events (
+</span><span style=color:#e6db74>        id INTEGER PRIMARY KEY AUTOINCREMENT,
+</span><span style=color:#e6db74>        desc TEXT,
+</span><span style=color:#e6db74>        at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+</span><span style=color:#e6db74>    )
+</span><span style=color:#e6db74>`</span>);
+
+<span style=color:#75715e>// API
+</span><span style=color:#75715e></span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>addEvent</span>(<span style=color:#a6e22e>text</span>) {
+    <span style=color:#a6e22e>db</span>.<span style=color:#a6e22e>query</span>(<span style=color:#e6db74>&#34;INSERT INTO events (desc) VALUES (?)&#34;</span>, [<span style=color:#a6e22e>text</span>]);
+}
+
+<span style=color:#66d9ef>export</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>removeEvent</span>(<span style=color:#a6e22e>id</span>) {
+    <span style=color:#a6e22e>db</span>.<span style=color:#a6e22e>query</span>(<span style=color:#e6db74>&#34;DELETE FROM events WHERE (id == ?)&#34;</span>, [<span style=color:#a6e22e>id</span>]);
+}
+
+<span style=color:#66d9ef>export</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>updateEvent</span>(<span style=color:#a6e22e>id</span>, <span style=color:#a6e22e>text</span>) {
+    <span style=color:#a6e22e>db</span>.<span style=color:#a6e22e>query</span>(<span style=color:#e6db74>&#34;UPDATE events SET desc = ? WHERE (id == ?)&#34;</span>, [<span style=color:#a6e22e>text</span>, <span style=color:#a6e22e>id</span>]);
+}
+
+<span style=color:#66d9ef>export</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>getEvent</span>(<span style=color:#a6e22e>id</span>) {
+    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>db</span>.<span style=color:#a6e22e>query</span>(<span style=color:#e6db74>&#34;SELECT * FROM events WHERE (id == ?)&#34;</span>, [<span style=color:#a6e22e>id</span>]);
+}
+
+<span style=color:#66d9ef>export</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>getAllEvents</span>() {
+    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>db</span>.<span style=color:#a6e22e>query</span>(<span style=color:#e6db74>&#34;SELECT * FROM events&#34;</span>);
+}
+
+<span style=color:#66d9ef>export</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>closeDB</span>() {
+    <span style=color:#a6e22e>db</span>.<span style=color:#a6e22e>close</span>();
+}
+</code></pre></div><p>If you know sql, then the only thing that might be foreign her is the <code>?</code> in the queries.
+It is a placeholder for the values passed in an array to the second argument of <code>db.query</code>.
+It&rsquo;s important to do it like this as it hinders sql-injections.</p>
+<h2 id=my-server-api>My Server API</h2>
+<p>Like express, I wanted the server to expose different request methods as functions.
+So if you need to make a get request handler you would write:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#a6e22e>server</span>.<span style=color:#a6e22e>get</span>(<span style=color:#a6e22e>route</span>, <span style=color:#a6e22e>handler</span>);
+</code></pre></div><p>The <code>route</code> is a path in the url and the <code>handler</code> is a function that expects a <code>ServerRequest</code> imported from the deno http server library.</p>
+<p>We might also want to add middleware, so our function will look like:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#a6e22e>server</span>.<span style=color:#a6e22e>get</span>(<span style=color:#a6e22e>route</span>, ...<span style=color:#a6e22e>handlers</span>) { ... }
+</code></pre></div><p>All the handels run before the last are middleware. They can for instance parse the query part of a url.</p>
+<h3 id=server-class>Server class</h3>
+<p>The Deno http server gives us the main listening and request functionality, and the <code>Server</code> class will give a simple way to organize it. This is how it looks:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Server</span> {
+    <span style=color:#a6e22e>constructor</span>(<span style=color:#a6e22e>port</span>, <span style=color:#a6e22e>loggingOn</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>false</span>) {
+        <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>port</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>port</span>;
+        <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>server</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>serve</span>({ <span style=color:#a6e22e>port</span> });
+
+        <span style=color:#75715e>// route -&gt; (method -&gt; handler)
+</span><span style=color:#75715e></span>        <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>routes</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Map</span>();
+    }
+    ... 
+}
+</code></pre></div><p>The main things to note is the call to <code>serve</code> which gives us a server on the port given by the user, and the <code>this.routes</code> variable, which holdes the routes and methods per route.
+We use this when adding routes and when matching a request.</p>
+<h3 id=handlers>Handlers</h3>
+<p>First up we should make the handle method. This thing will be responsible for assigning the handlers to a route and request method.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#a6e22e>handle</span>(<span style=color:#a6e22e>route</span>, <span style=color:#a6e22e>handles</span>, <span style=color:#a6e22e>method</span>) {
+     <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>methods</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>routes</span>.<span style=color:#a6e22e>get</span>(<span style=color:#a6e22e>route</span>);   <span style=color:#75715e>// 1.
+</span><span style=color:#75715e></span>
+     <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>methods</span> <span style=color:#f92672>===</span> <span style=color:#66d9ef>undefined</span>) {
+         <span style=color:#a6e22e>methods</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Map</span>();                <span style=color:#75715e>// 2.
+</span><span style=color:#75715e></span>         <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>routes</span>.<span style=color:#a6e22e>set</span>(<span style=color:#a6e22e>route</span>, <span style=color:#a6e22e>methods</span>);    <span style=color:#75715e>// 2.    
+</span><span style=color:#75715e></span>     }
+
+     <span style=color:#a6e22e>methods</span>.<span style=color:#a6e22e>set</span>(<span style=color:#a6e22e>method</span>, <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>req</span> =&gt; {      <span style=color:#75715e>// 3.
+</span><span style=color:#75715e></span>         <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>const</span> <span style=color:#a6e22e>h</span> <span style=color:#66d9ef>of</span> <span style=color:#a6e22e>handles</span>) {
+             <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>h</span>(<span style=color:#a6e22e>req</span>);                   <span style=color:#75715e>// 3.
+</span><span style=color:#75715e></span>         }
+     });
+ }
+</code></pre></div><ol>
+<li>We see if there already is a method map in this route.</li>
+<li>If not we make a new one, and assign it.</li>
+<li>Here we make our own async handler, and assign it to the request method. This will run all the handlers in sequence, so that our middleware can do its thing before we continue. This is why we call await inside the for loop.</li>
+</ol>
+<p>With this in place we can make a method in <code>Server</code> for each request method.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript> <span style=color:#a6e22e>get</span>(<span style=color:#a6e22e>route</span>, ...<span style=color:#a6e22e>handles</span>) {
+     <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>handle</span>(<span style=color:#a6e22e>route</span>, <span style=color:#a6e22e>handles</span>, <span style=color:#e6db74>&#34;GET&#34;</span>);
+ }
+
+ <span style=color:#a6e22e>post</span>(<span style=color:#a6e22e>route</span>, ...<span style=color:#a6e22e>handles</span>) {
+     <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>handle</span>(<span style=color:#a6e22e>route</span>, <span style=color:#a6e22e>handles</span>, <span style=color:#e6db74>&#34;POST&#34;</span>);
+ }
+ 
+ <span style=color:#a6e22e>patch</span>(<span style=color:#a6e22e>route</span>, ...<span style=color:#a6e22e>handles</span>) {
+     <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>handle</span>(<span style=color:#a6e22e>route</span>, <span style=color:#a6e22e>handles</span>, <span style=color:#e6db74>&#34;PATCH&#34;</span>);
+ }
+
+ <span style=color:#66d9ef>delete</span>(<span style=color:#a6e22e>route</span>, ...<span style=color:#a6e22e>handles</span>) {
+     <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>handle</span>(<span style=color:#a6e22e>route</span>, <span style=color:#a6e22e>handles</span>, <span style=color:#e6db74>&#34;DELETE&#34;</span>);
+ }
+</code></pre></div><h3 id=running-the-server>Running The Server</h3>
+<p>The server will need to be started in a way. For this we will use a async method called listen.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#66d9ef>async</span> <span style=color:#a6e22e>listen</span>() {
+    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`Starting server on localhost:</span><span style=color:#e6db74>${</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>port</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>); 
+
+    <span style=color:#66d9ef>for</span> <span style=color:#66d9ef>await</span> (<span style=color:#66d9ef>const</span> <span style=color:#a6e22e>req</span> <span style=color:#66d9ef>of</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>server</span>) {  <span style=color:#75715e>// 1.
+</span><span style=color:#75715e></span>        <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>run</span>(<span style=color:#a6e22e>req</span>);                      <span style=color:#75715e>// 2.
+</span><span style=color:#75715e></span>    }
+}
+</code></pre></div><ol>
+<li>This loop runs forever waiting for requests from the server.</li>
+<li>When we get a request we will run it.</li>
+</ol>
+<p>Now we need to make the run method.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#a6e22e>run</span>(<span style=color:#a6e22e>req</span>) {
+    <span style=color:#75715e>// this localhost stuff is a hack but it will work fine, and 
+</span><span style=color:#75715e></span>    <span style=color:#75715e>// give us the needed functionality from the URL class.
+</span><span style=color:#75715e></span>    <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>url</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>URL</span>(<span style=color:#e6db74>&#34;https://localhost&#34;</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>url</span>);
+    <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>methods</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>routes</span>.<span style=color:#a6e22e>get</span>(<span style=color:#a6e22e>url</span>.<span style=color:#a6e22e>pathname</span>);            <span style=color:#75715e>// 1.
+</span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>methods</span> <span style=color:#f92672>===</span> <span style=color:#66d9ef>undefined</span>) {
+        <span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>respond</span>({ <span style=color:#a6e22e>status</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>404</span>, <span style=color:#a6e22e>body</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;Not Found&#34;</span> });    <span style=color:#75715e>// 3.
+</span><span style=color:#75715e></span>        <span style=color:#66d9ef>return</span>;
+    }
+    
+    <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>handle</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>methods</span>.<span style=color:#a6e22e>get</span>(<span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>method</span>);                   <span style=color:#75715e>// 2.
+</span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>handle</span> <span style=color:#f92672>===</span> <span style=color:#66d9ef>undefined</span>) {
+        <span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>respond</span>({ <span style=color:#a6e22e>status</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>404</span>, <span style=color:#a6e22e>body</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;Not Found&#34;</span> });    <span style=color:#75715e>// 3.
+</span><span style=color:#75715e></span>        <span style=color:#66d9ef>return</span>;
+    }
+
+    <span style=color:#a6e22e>handle</span>(<span style=color:#a6e22e>req</span>);                                            <span style=color:#75715e>// 4.
+</span><span style=color:#75715e></span>}
+</code></pre></div><ol>
+<li>Check the routes for a match on the url pathname, not the whole url.</li>
+<li>Then see if the route has the correct request method.</li>
+<li>If not found return a 404 status.</li>
+<li>If all goes well, run the handler by passing it the request object.</li>
+</ol>
+<blockquote>
+<h5 id=i-use-the-url-class-but-it-expects-a-complete-url-and-requrl-is-just-the-path-part-so-to-fix-this-i-append-httplocalhost-this-does-not-change-anything-for-our-use-but-it-is-not-pretty-this-in-necessary-because-an-url-might-also-have-a-query-like-id3-and-this-will-be-part-of-requrl-but-not-urlpathname>I use the URL class, but it expects a complete url, and <code>req.url</code> is just the path part. So to fix this I append http://localhost. This does not change anything for our use, but it is not pretty. This in necessary because an url might also have a query like &lsquo;?id=3&rsquo; and this will be part of <code>req.url</code>, but not url.pathname.</h5>
+</blockquote>
+<h3 id=utility>Utility</h3>
+<p>There is one last function that I want to expose. It allows us to return JSON in a simple manner.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>respondWithJSON</span>(<span style=color:#a6e22e>req</span>, <span style=color:#a6e22e>obj</span>) {
+    <span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>respond</span>({<span style=color:#a6e22e>body</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>JSON</span>.<span style=color:#a6e22e>stringify</span>(<span style=color:#a6e22e>obj</span>)});
+}
+</code></pre></div><p>Now when a handler want to return JSON it simply calls this function with the request and object to return.</p>
+<h2 id=using-the-server>Using The Server</h2>
+<p>Now that the API is ready we should try it. In a separate file, that I named <code>index.js</code>, we can import the server and initialize it.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>Server</span>, <span style=color:#a6e22e>respondWithJSON</span> } <span style=color:#a6e22e>from</span> <span style=color:#e6db74>&#39;./server.js&#39;</span>;
+
+<span style=color:#66d9ef>const</span> <span style=color:#a6e22e>server</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Server</span>(<span style=color:#ae81ff>8001</span>);
+</code></pre></div><p>Now lets make a simple get handler and run the server.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#a6e22e>server</span>.<span style=color:#a6e22e>get</span>(<span style=color:#e6db74>&#39;/&#39;</span>, <span style=color:#a6e22e>req</span> =&gt; {
+    <span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>respond</span>({<span style=color:#a6e22e>body</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;hello world&#34;</span>});
+});
+
+<span style=color:#66d9ef>await</span> <span style=color:#a6e22e>server</span>.<span style=color:#a6e22e>listen</span>();
+</code></pre></div><p>If we run</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>$ deno run --allow-net index.js
+</code></pre></div><p>and in another terminal window run</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>$ curl http://localhost:8001/
+hello world
+</code></pre></div><p>And it works!</p>
+<h3 id=building-a-proper-web-api>Building a Proper Web API</h3>
+<p>With the server and database APIs ready, its only proper to expose it to the world. We need a web API. First we will add two import statements to <code>index.js</code>.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#66d9ef>import</span> {<span style=color:#a6e22e>addEvent</span>, <span style=color:#a6e22e>removeEvent</span>, <span style=color:#a6e22e>updateEvent</span>, <span style=color:#a6e22e>getEvent</span>, <span style=color:#a6e22e>getAllEvents</span>, <span style=color:#a6e22e>closeDB</span>} <span style=color:#a6e22e>from</span> <span style=color:#e6db74>&#39;./db.js&#39;</span>;
+<span style=color:#66d9ef>import</span> {<span style=color:#a6e22e>getJSON</span>, <span style=color:#a6e22e>checkJSON</span>, <span style=color:#a6e22e>getQuery</span>} <span style=color:#a6e22e>from</span> <span style=color:#e6db74>&#39;./middleware.js&#39;</span>;
+</code></pre></div><p>The database import should be familiar, but the middleware is new. It is not crucial to know how it does what it does, but I will show it now for the curious, and the ones how are following along. For the rest just know that, <code>getJSON</code> parses JSON from the request body, and exposes it as <code>req.json</code>. <code>checkJSON</code> makes sure it is correctly formatted, and <code>getQuery</code> parser the query part of an url and exposes it as <code>req.query</code>.</p>
+<h5 id=middlewarejs><strong><code>middleware.js</code></strong></h5>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#75715e>// JSON
+</span><span style=color:#75715e></span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>async</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>getJSON</span>(<span style=color:#a6e22e>req</span>) {
+    <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>buf</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>Deno</span>.<span style=color:#a6e22e>readAll</span>(<span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>body</span>);
+    <span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>json</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>JSON</span>.<span style=color:#a6e22e>parse</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>TextDecoder</span>().<span style=color:#a6e22e>decode</span>(<span style=color:#a6e22e>buf</span>));
+    <span style=color:#66d9ef>return</span> Promise.<span style=color:#a6e22e>resolve</span>(<span style=color:#e6db74>&#34;done&#34;</span>);
+}
+
+<span style=color:#66d9ef>export</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>checkJSON</span>(<span style=color:#a6e22e>correct</span>) {
+    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>req</span> =&gt; {
+        <span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>jsonErrors</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;&#34;</span>;
+        <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>json</span> <span style=color:#f92672>===</span> <span style=color:#66d9ef>undefined</span>) {
+            <span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>jsonErrors</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;no JSON found&#34;</span>;
+        } <span style=color:#66d9ef>else</span> {
+            <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>const</span> <span style=color:#a6e22e>k</span> <span style=color:#66d9ef>in</span> <span style=color:#a6e22e>correct</span>) {
+                <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>json</span>[<span style=color:#a6e22e>k</span>] <span style=color:#f92672>===</span> <span style=color:#66d9ef>undefined</span>) {
+                    <span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>jsonErrors</span> <span style=color:#f92672>+=</span> <span style=color:#e6db74>` ! missing </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>k</span><span style=color:#e6db74>}</span><span style=color:#e6db74> of </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>correct</span>[<span style=color:#a6e22e>k</span>]<span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>;
+                } <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> (<span style=color:#66d9ef>typeof</span> <span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>json</span>[<span style=color:#a6e22e>k</span>] <span style=color:#f92672>!==</span> <span style=color:#a6e22e>correct</span>[<span style=color:#a6e22e>k</span>]) {
+                    <span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>jsonErrors</span> <span style=color:#f92672>+=</span> <span style=color:#e6db74>` ! wrong type of </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>k</span><span style=color:#e6db74>}</span><span style=color:#e6db74>, is </span><span style=color:#e6db74>${</span><span style=color:#66d9ef>typeof</span> <span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>json</span>[<span style=color:#a6e22e>k</span>]<span style=color:#e6db74>}</span><span style=color:#e6db74> but should be </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>correct</span>[<span style=color:#a6e22e>k</span>]<span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>;
+                }
+            }
+        } 
+    }
+}
+
+<span style=color:#75715e>// QUERY
+</span><span style=color:#75715e></span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>getQuery</span>(<span style=color:#a6e22e>req</span>) {
+    <span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>query</span> <span style=color:#f92672>=</span> {};
+
+    <span style=color:#75715e>// this localhost stuff is a hack but it will work fine, and give us the 
+</span><span style=color:#75715e></span>    <span style=color:#75715e>// needed functionality from the URL class.
+</span><span style=color:#75715e></span>    <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>url</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>URL</span>(<span style=color:#e6db74>&#34;https://localhost&#34;</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>url</span>);
+
+    <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>const</span> <span style=color:#a6e22e>k</span> <span style=color:#66d9ef>of</span> <span style=color:#a6e22e>url</span>.<span style=color:#a6e22e>searchParams</span>.<span style=color:#a6e22e>keys</span>()) {
+        <span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>query</span>[<span style=color:#a6e22e>k</span>] <span style=color:#f92672>=</span> <span style=color:#a6e22e>url</span>.<span style=color:#a6e22e>searchParams</span>.<span style=color:#a6e22e>get</span>(<span style=color:#a6e22e>k</span>);
+    }
+}
+</code></pre></div><p>Now for the web API. We need to get back to <code>index.js</code> and make the handlers. First lets look at getting all events.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#a6e22e>server</span>.<span style=color:#a6e22e>get</span>(<span style=color:#e6db74>&#39;/events&#39;</span>, <span style=color:#a6e22e>req</span> =&gt; {
+    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>events</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>getAllEvents</span>();
+    <span style=color:#a6e22e>respondWithJSON</span>(<span style=color:#a6e22e>req</span>, <span style=color:#a6e22e>events</span>);
+});
+</code></pre></div><p>This one listens on the path localhost:8001/events for GET requests.
+When one comes it queries the database for all events and sends them to the client with JSON encoding.</p>
+<p>That was simple enough, lets see if we can query a single event.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#a6e22e>server</span>.<span style=color:#a6e22e>get</span>(<span style=color:#e6db74>&#39;/event&#39;</span>, 
+    <span style=color:#a6e22e>getQuery</span>,
+    <span style=color:#a6e22e>req</span> =&gt; {
+        <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>query</span>.<span style=color:#a6e22e>id</span> <span style=color:#f92672>!==</span> <span style=color:#66d9ef>undefined</span>) {
+            <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>event</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>getEvent</span>(<span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>query</span>.<span style=color:#a6e22e>id</span>);
+            <span style=color:#a6e22e>respondWithJSON</span>(<span style=color:#a6e22e>req</span>, {<span style=color:#a6e22e>event</span>});
+        } <span style=color:#66d9ef>else</span> {
+            <span style=color:#a6e22e>respondWithJSON</span>(<span style=color:#a6e22e>req</span>, {<span style=color:#a6e22e>status</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;query param &#39;id&#39; is missing&#34;</span>});
+        }
+    }
+);
+</code></pre></div><p>We simply place the <code>getQuery</code> middleware function ahead of our handler and check if <code>id</code> was part of the query.
+Deleting is pretty much the same.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#a6e22e>server</span>.<span style=color:#66d9ef>delete</span>(<span style=color:#e6db74>&#39;/event&#39;</span>, 
+    <span style=color:#a6e22e>getQuery</span>,
+    <span style=color:#a6e22e>req</span> =&gt; {
+       <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>query</span>.<span style=color:#a6e22e>id</span> <span style=color:#f92672>!==</span> <span style=color:#66d9ef>undefined</span>) {
+           <span style=color:#a6e22e>removeEvent</span>(<span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>query</span>.<span style=color:#a6e22e>id</span>);
+           <span style=color:#a6e22e>respondWithJSON</span>(<span style=color:#a6e22e>req</span>, {<span style=color:#a6e22e>status</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;deleted&#34;</span>});
+       } <span style=color:#66d9ef>else</span> {
+           <span style=color:#a6e22e>respondWithJSON</span>(<span style=color:#a6e22e>req</span>, {<span style=color:#a6e22e>status</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;query param &#39;id&#39; is missing&#34;</span>});
+       }
+    }
+);
+</code></pre></div><p>More interesting is adding a new event. This will utilize the post method.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#a6e22e>server</span>.<span style=color:#a6e22e>post</span>(<span style=color:#e6db74>&#39;/event&#39;</span>, 
+    <span style=color:#a6e22e>getJSON</span>,                                                
+    <span style=color:#a6e22e>checkJSON</span>({<span style=color:#a6e22e>desc</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;string&#34;</span>})                             
+    <span style=color:#a6e22e>req</span> =&gt; {
+        <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>jsonErrors</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#34;&#34;</span>) {
+            <span style=color:#a6e22e>addEvent</span>(<span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>json</span>.<span style=color:#a6e22e>desc</span>);
+            <span style=color:#a6e22e>respondWithJSON</span>(<span style=color:#a6e22e>req</span>, {<span style=color:#a6e22e>status</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;ok&#34;</span>});
+        } <span style=color:#66d9ef>else</span> {
+            <span style=color:#a6e22e>respondWithJSON</span>(<span style=color:#a6e22e>req</span>, {<span style=color:#a6e22e>status</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>jsonErrors</span>});
+        }
+    }
+);
+</code></pre></div><p><code>getJSON</code> does what <code>getQuery</code> did in the previous handlers. It adds the result in the variable <code>req.json</code>.
+The other function is <code>checkJSON</code> it take a object describing the expected json structure, and returns a middleware that controls that the json is correctly structured. Any mistake is added to <code>req.jsonErrors</code>. Should it be empty, the json is correct. This particular instance says we expect a key called <code>desc</code> of type <code>string</code>.</p>
+<p>Now as a final test, we put everything together in the patch handler.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#a6e22e>server</span>.<span style=color:#a6e22e>patch</span>(<span style=color:#e6db74>&#39;/event&#39;</span>, 
+    <span style=color:#a6e22e>getQuery</span>,
+    <span style=color:#a6e22e>getJSON</span>,
+    <span style=color:#a6e22e>checkJSON</span>({<span style=color:#a6e22e>desc</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;string&#34;</span>}),
+    <span style=color:#a6e22e>req</span> =&gt; {
+        <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>query</span>.<span style=color:#a6e22e>id</span> <span style=color:#f92672>!==</span> <span style=color:#66d9ef>undefined</span>) {
+            <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>jsonErrors</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#34;&#34;</span>) {
+                <span style=color:#a6e22e>updateEvent</span>(<span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>query</span>.<span style=color:#a6e22e>id</span>, <span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>json</span>.<span style=color:#a6e22e>desc</span>);
+                <span style=color:#a6e22e>respondWithJSON</span>(<span style=color:#a6e22e>req</span>, {<span style=color:#a6e22e>status</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;patched&#34;</span>});
+            } <span style=color:#66d9ef>else</span> {
+                <span style=color:#a6e22e>respondWithJSON</span>(<span style=color:#a6e22e>req</span>, {<span style=color:#a6e22e>status</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>jsonErrors</span>});
+            }
+        } <span style=color:#66d9ef>else</span> {
+            <span style=color:#a6e22e>respondWithJSON</span>(<span style=color:#a6e22e>req</span>, {<span style=color:#a6e22e>status</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;query param &#39;id&#39; is missing&#34;</span>});
+        }
+    }
+);
+</code></pre></div><p>There is nothing new here, just that all these things can be combined, and reused.</p>
+<h3 id=trying-it-out>Trying It Out</h3>
+<p>First up we need to start the server.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>$ deno --allow-net --allow-read --allow-write index.js
+Starting server on localhost:8001
+</code></pre></div><p>Next up we open another terminal and try to post something.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>$ curl -X POST localhost:8001/event <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span>       -H <span style=color:#e6db74>&#34;Content-Type: application/json&#34;</span> <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span>       -d <span style=color:#e6db74>&#39;{&#34;desc&#34;: &#34;hello world&#34;}&#39;</span>
+<span style=color:#f92672>{</span><span style=color:#e6db74>&#34;status&#34;</span>:<span style=color:#e6db74>&#34;ok&#34;</span><span style=color:#f92672>}</span>
+</code></pre></div><p>Neat! Now lets see our result.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>$ curl localhost:8001/events
+<span style=color:#f92672>[[</span>1,<span style=color:#e6db74>&#34;hello world&#34;</span>,<span style=color:#e6db74>&#34;2021-08-16 15:43:37&#34;</span><span style=color:#f92672>]]</span>
+</code></pre></div><p>This returns an array of events. Each event is itself an array of id, desc, and timestamp, functioning as a tuple.</p>
+<p>Now lets patch our event.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>$ curl -X PATCH <span style=color:#e6db74>&#39;localhost:8001/event?id=1&#39;</span> <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span>       -H <span style=color:#e6db74>&#39;Content-Type: application/json&#39;</span> <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span>       -d <span style=color:#e6db74>&#39;{&#34;desc&#34;: &#34;bye world&#34;}&#39;</span>
+<span style=color:#f92672>{</span><span style=color:#e6db74>&#34;status&#34;</span>:<span style=color:#e6db74>&#34;patched&#34;</span><span style=color:#f92672>}</span>
+</code></pre></div><p>Now lets check it again, but this time only request this event.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>$ curl <span style=color:#e6db74>&#39;localhost:8001/event?id=1&#39;</span> 
+<span style=color:#f92672>[[</span>1,<span style=color:#e6db74>&#34;bye world&#34;</span>,<span style=color:#e6db74>&#34;2021-08-16 15:43:37&#34;</span><span style=color:#f92672>]]</span>
+</code></pre></div><p>This returs an array of events, but we know that at max there should only be one element.
+So really this array is more like Haskell&rsquo;s <code>Maybe</code> type. Either there is nothing in the array, or ther is just one event there.</p>
+<p>Finally lets remove the event.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>$ curl -X DELETE <span style=color:#e6db74>&#39;localhost:8001/event?id=1&#39;</span>
+<span style=color:#f92672>{</span><span style=color:#e6db74>&#34;status&#34;</span>:<span style=color:#e6db74>&#34;deleted&#34;</span><span style=color:#f92672>}</span>
+</code></pre></div><p>Checking that it was removed gives us</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>$ curl localhost:8001/events
+<span style=color:#f92672>[]</span>
+</code></pre></div><p>No more events.</p>
+<h2 id=conclusion>Conclusion</h2>
+<p>This project, as a test for Deno can at best claim what Deno can do for a hobbyist. And as a hobbyist I am very satisfied. The functionality I needed was there, and easy to import. The lack of any initialization made the &ldquo;idea to product&rdquo; development process really effortless.</p>
+<p>I ended up with having to explain more about the server aspect of this project than I had hoped for, but hope that the readers will find those parts interesting as well, and that on a surface level deno seems like a proper replacement for node. Its even made by the same guy, the name is just an anagram for node.</p>
+<p>Next time I visit deno I will try to look at how having the web API on the backend can be useful. Deno leverages things like web workers, and the fetch API, and I want wait to make something from it.</p>
+<p>This repository have a multi purpose. My next post will be how to set up the environment (Deno and Svelte), using nix.</p>
+<h3 id=ps>P.S</h3>
+<p>This repository is available on <a href=https://github.com/EspenBerget/my-server-api>my github</a>, where there is also a frontend in Svelte do show that the backend works.
+There are some more functionality not addressed here like CORS and OPTIONS request handlers.</p>
+</div>
+<div class=post-footer>
+</div>
+</article>
+</main>
+</body>
+</html>
