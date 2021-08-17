@@ -9,7 +9,7 @@ theme = "m10c"
 [params]
 avatar = "images/me.png"
 author = "Espen Berget"
-description = "Computer programmer, interested in functional programming, web development, and the nix eco-system."
+description = "Computer programmer, interested in functional programming, web development, and the nix ecosystem."
 
 [[params.social]]
   icon = "github"
