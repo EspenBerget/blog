@@ -1,0 +1,182 @@
+<!doctype html><html lang=en-us>
+<head>
+<title>Building with Nix // Espen Berget's Coding Blog</title>
+<link rel="shortcut icon" href=/favicon.ico>
+<meta charset=utf-8>
+<meta name=generator content="Hugo 0.87.0">
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=author content="Espen Berget">
+<meta name=description content>
+<link rel=stylesheet href=https://EspenBerget.github.io/css/main.min.4a7ec8660f9a44b08c4da97c5f2e31b1192df1d4d0322e65c0dbbc6ecb1b863f.css>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Building with Nix">
+<meta name=twitter:description content="Part of my intent with the last post was to create something I could try to ship as a Nix derivation.
+I really like the ide of a purely functional package manager. Particularly one that has the reach of Nix.
+About Nix In the development cycle we are plagued by dependencies not only in production, but also in development. Setting up a project can be just as much of a hassel as making it run on the clients computers, or servers.">
+<meta property="og:title" content="Building with Nix">
+<meta property="og:description" content="Part of my intent with the last post was to create something I could try to ship as a Nix derivation.
+I really like the ide of a purely functional package manager. Particularly one that has the reach of Nix.
+About Nix In the development cycle we are plagued by dependencies not only in production, but also in development. Setting up a project can be just as much of a hassel as making it run on the clients computers, or servers.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://EspenBerget.github.io/posts/building-with-nix/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2021-08-24T21:52:48+02:00">
+<meta property="article:modified_time" content="2021-08-24T21:52:48+02:00">
+</head>
+<body>
+<header class=app-header>
+<a href=https://EspenBerget.github.io/><img class=app-header-avatar src=/images/me.png alt="Espen Berget"></a>
+<h1>Espen Berget's Coding Blog</h1>
+<p>Computer programmer, interested in functional programming, web development, and the nix ecosystem.</p>
+<div class=app-header-social>
+<a href=https://github.com/EspenBerget target=_blank rel="noreferrer noopener"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-github"><title>My Github</title><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37.0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44.0 0020 4.77 5.07 5.07.0 0019.91 1S18.73.65 16 2.48a13.38 13.38.0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07.0 005 4.77 5.44 5.44.0 003.5 8.55c0 5.42 3.3 6.61 6.44 7A3.37 3.37.0 009 18.13V22"/></svg>
+</a>
+<a href=mailto:espen.berget@tuta.io target=_blank rel="noreferrer noopener"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-mail"><title>My email</title><path d="M4 4h16c1.1.0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1.0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+</a>
+<a href=https://twitter.com/espen_berget target=_blank rel="noreferrer noopener"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-twitter"><title>My Twitter</title><path d="M23 3a10.9 10.9.0 01-3.14 1.53 4.48 4.48.0 00-7.86 3v1A10.66 10.66.0 013 4s-4 9 5 13a11.64 11.64.0 01-7 2c9 5 20 0 20-11.5a4.5 4.5.0 00-.08-.83A7.72 7.72.0 0023 3z"/></svg>
+</a>
+</div>
+</header>
+<main class=app-container>
+<article class=post>
+<header class=post-header>
+<h1 class=post-title>Building with Nix</h1>
+<div class=post-meta>
+<div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar"><title>calendar</title><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+Aug 24, 2021
+</div>
+<div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock"><title>clock</title><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+6 min read
+</div>
+</div>
+</header>
+<div class=post-content>
+<p>Part of my intent with the <a href=(https://espenberget.github.io/trying-deno-and-building-a-server-api/)>last post</a> was to create something I could try to ship as a Nix derivation.</p>
+<p>I really like the ide of a purely functional package manager.
+Particularly one that has the reach of Nix.</p>
+<h2 id=about-nix>About Nix</h2>
+<p>In the development cycle we are plagued by dependencies not only in production, but also in development.
+Setting up a project can be just as much of a hassel as making it run on the clients computers, or servers.
+Further the increase in production environment choices means more to learn for the developers. Company wants Azure, well time to read the docs, new company uses docker and kubernetes&mldr; time to read the docs.
+Would be nice to have a more uniform way of dealing with all this. A language for building software, and a environment of atomic, uniform, and consistent development, where &ldquo;it works on my machine&rdquo; is not just solved in production, but also in development.</p>
+<p>Nix offers all this. It&rsquo;s usability stretch from building a simple app, like this tutorial to configuring an entire OS (see NixOS).</p>
+<p>Nix itself is a purely functional, lazy evaluated language. It is the heart of the nix ecosystem, which also provides <code>nix-build</code> for building, <code>nix-shell</code> to run and try your program in a consistent manner. If your program have a dependency found on your computer, nix-shell still won&rsquo;t use it, instead you must state its dependency and install it in nix store. This means that you wont ship code with &ldquo;incomplete dependencies&rdquo;.</p>
+<p>There is also a <code>nix-env</code> which is similar to <code>apt</code>, <code>npm</code>, <code>brew</code>, etc&mldr;</p>
+<h3 id=nix-language>Nix Language</h3>
+<p>The few components of the nix language I deem important for this tutorial are sets and functions.</p>
+<p>A set in nix looks like this <code>{ a = 1; b = 2; }</code>. Important to note that values are separated by a semicolon, and all values must be followed by one!
+Sets are frequently used to passed attributes to functions.</p>
+<p>A function in nix looks lif <code>f = a: b: a + b</code>, well this is really two functions. A function takes an argument followed by a colon and a function body.
+This one her is assigned to <code>f</code> and take a value, returns a function that takes a value and adds the two values together.</p>
+<p>A more typical example of a function is</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix><span style=color:#66d9ef>let</span> 
+    add <span style=color:#f92672>=</span> { a<span style=color:#f92672>,</span> b }: a <span style=color:#f92672>+</span> b;
+<span style=color:#66d9ef>in</span> 
+    add {a <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>; b <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span>;}
+</code></pre></div><p>This one takes a set and adds the values. You see how it is called in the last line.</p>
+<p>Finally we should mention derivations. This is what we will make in order to have our program build in the standard environment. Nix is all about derivations, they hold the necessary information for nix to build, and make sure all dependencies are met.</p>
+<h2 id=using-nix>Using Nix</h2>
+<p>So just getting started with Nix for our backend app is no issue.
+We will just write a simple <code>default.nix</code> file.</p>
+<h5 id=defaultnix><strong>default.nix</strong></h5>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix><span style=color:#66d9ef>with</span> (<span style=color:#f92672>import</span> <span style=color:#e6db74>&lt;nixpkgs&gt;</span> {});     <span style=color:#75715e># 1.</span>
+
+stdenv<span style=color:#f92672>.</span>mkDerivation {           <span style=color:#75715e># 2.</span>
+    pname <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;DenoServer&#34;</span>;       <span style=color:#75715e># 3.</span>
+    version <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;1.0.0&#34;</span>;          <span style=color:#75715e># 3.</span>
+
+    buildInputs <span style=color:#f92672>=</span> [ deno ];     <span style=color:#75715e># 4.</span>
+
+    shellHook <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;&#39;              
+</span><span style=color:#e6db74>        deno run --allow-net --allow-write --allow-read index.js
+</span><span style=color:#e6db74>    &#39;&#39;</span>;                         <span style=color:#75715e># 5.</span>
+}
+</code></pre></div><blockquote>
+<h5 id=to-understand-more-of-mkderivation-go-to-this-sitederivation>To understand more of mkDerivation go to <a href=(http://blog.ielliott.io/nix-docs/stdenv-mkDerivation.html)>this site</a></h5>
+</blockquote>
+<ol>
+<li>
+<p>This is a simple way off getting access to the nix ecosystem. We simply import all nix packages, and make them accessible to our environment using <code>with</code>. You might think this is overkill, all 80,000 packages! But remember that nix is lazy, it does not import anything right away, instead it only gives us what we use, when we use it. This is merly a declarative statement, saying &ldquo;make sure all thing are accessible if needed&rdquo;.</p>
+</li>
+<li>
+<p>This is the important bit, making a derivation. Remember that they are the meat of nix development. We pass a set to the function which must contain some thing required for the derivation.</p>
+</li>
+<li>
+<p>These two are more for logistical purposes. We need a name and a version. We could also use the <code>name</code> attribute like <code>name = "DenoServer-1.0.0";</code>.</p>
+</li>
+<li>
+<p>This is the reason I thought this app would be a simple start. We only need to state one dependency, namely deno. Dependencies are given in the <code>buildInputs</code> attribute in the set passed to <code>mkDerivation</code>.</p>
+</li>
+<li>
+<p>Finally we want the <code>nix-shell</code> command to start the deno server. So we pass a command argument to the <code>shellHook</code> attribute. The double ticks are nix&rsquo;s way of passing multi line strings.</p>
+</li>
+</ol>
+<p>Now running <code>nix-shell</code> in the backend folder should make nix build a project from scratch, import all dependencies (you will see more that deno, because deno and every other program have some dependencies them self).
+Lastly you will see the line <code>Starting server on localhost:8001</code>.</p>
+<p>Our server now runs on any nix supported platform, without us needing to think about what must be installed, nix handles that.</p>
+<h2 id=building-with-nix>Building with Nix</h2>
+<p>The first example shows that nix can setup a deno environment and run it, but it not really a good use of nix&rsquo;s powers.
+All we do is make it easier to install and run deno, given that the user have nix, if not, we made it worse!</p>
+<p>So instead lets build a derivation with nix instead. Remember nix is all about derivations. Before I make a builder with nix, our directory is becoming a bit tangled with js files and nix files. Would be nice to separate them, give the project a focus. DevOps in one folder, dev in the other. Two simple commands would do.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>$ mkdir src
+$ mv *.js src/
+</code></pre></div><p>There, now the js source (dev stuff) is in <code>src</code> and nix files (devops) is in the top folder.</p>
+<p>Now to the derivation building.</p>
+<h5 id=defaultnix-1><strong>default.nix</strong></h5>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix><span style=color:#66d9ef>with</span> (<span style=color:#f92672>import</span> <span style=color:#e6db74>&lt;nixpkgs&gt;</span> {});             
+
+stdenv<span style=color:#f92672>.</span>mkDerivation {                   
+    pname <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;DenoServer&#34;</span>;               <span style=color:#75715e># 1.</span>
+    version <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;1.0.0&#34;</span>;                  <span style=color:#75715e># 1.</span>
+
+    buildInputs <span style=color:#f92672>=</span> [ deno ];             <span style=color:#75715e># 1.</span>
+
+    src <span style=color:#f92672>=</span> <span style=color:#e6db74>./src</span>;                        <span style=color:#75715e># 2.</span>
+
+    DENO_DIR <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;.cached&#34;</span>;               <span style=color:#75715e># 3.</span>
+
+    buildPhase <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;&#39;                     
+</span><span style=color:#e6db74>        deno compile -o server \
+</span><span style=color:#e6db74>            --allow-net --allow-read --allow-write \
+</span><span style=color:#e6db74>             index.js 
+</span><span style=color:#e6db74>    &#39;&#39;</span>;                                 <span style=color:#75715e># 4</span>
+
+    installPhase <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;&#39;
+</span><span style=color:#e6db74>        mkdir -p $out/bin
+</span><span style=color:#e6db74>        mv server $out/bin
+</span><span style=color:#e6db74>    &#39;&#39;</span>;                                 <span style=color:#75715e># 5</span>
+
+    shellHook <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;&#39;
+</span><span style=color:#e6db74>        $out/bin/server
+</span><span style=color:#e6db74>    &#39;&#39;</span>;                                 <span style=color:#75715e># 6.</span>
+}
+</code></pre></div><ol>
+<li>
+<p>All of these are the same as before.</p>
+</li>
+<li>
+<p>This informs nix about our src directory, fittingly the attribute is named src.</p>
+</li>
+<li>
+<p>This is a neat thing about mkDerivation. Often the builder is a bash session, and the attributes are passed to it as environment variables. Turns out deno need this one to be set in order to work, and we can simply set it her. No hassel!</p>
+</li>
+<li>
+<p>Here we take advantage of deno&rsquo;s compile command. It is experimental though, but to good for my use case to ignore. It will create a binary file that we will call later, we named this file <code>server</code>.</p>
+</li>
+<li>
+<p>Next we install our new binary in a folder within the derivation called bin. The derivation path is stored in $out. After we made this folder we move the server binary there.</p>
+</li>
+<li>
+<p>Finally if we choose to run <code>nix-shell</code> it will now start the server.</p>
+</li>
+</ol>
+<p>Now running <code>nix-build</code> in the root of our project will create the derivation and add it to our nix store. This also gives us a result folder which if we run <code>./result/bin/server</code> will start the server.</p>
+<h2 id=conclusion>Conclusion</h2>
+<p>Nix is easier to set up then expected. This is not the full extend of nix&rsquo;s capabilities by far, but if you want to learn more check out the <a href=(https://nixos.org/guides/nix-pills/index.html)>nix pils</a> tutorial series, and learn the language at <a href="(https://nixcloud.io/tour/?id=1)">a tour of nix</a>.</p>
+<p>For me this was a first derivation and I think nix is my goto tool in the future.</p>
+</div>
+<div class=post-footer>
+</div>
+</article>
+</main>
+</body>
+</html>
