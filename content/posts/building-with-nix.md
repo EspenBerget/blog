@@ -1,7 +1,7 @@
 ---
 title: "Building with Nix"
 date: 2021-08-24T21:52:48+02:00
-draft: true
+draft: false
 ---
 
 Part of my intent with the [last post][prev] was to create something I could try to ship as a Nix derivation.
